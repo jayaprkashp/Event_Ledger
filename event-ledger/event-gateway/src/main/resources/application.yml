@@ -1,0 +1,66 @@
+spring:
+  application:
+    name: event-gateway
+  datasource:
+    url: jdbc:h2:mem:gatewaydb;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: false
+
+server:
+  port: 8080
+
+app:
+  account-service:
+    base-url: http://localhost:8081
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,metrics
+  endpoint:
+    health:
+      show-details: never
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      accountService:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+        record-exceptions:
+          - com.eventledger.gateway.exception.AccountServiceUnavailableException
+        ignore-exceptions:
+          - com.eventledger.gateway.exception.DownstreamRejectionException
+  timelimiter:
+    instances:
+      accountService:
+        timeout-duration: 3s
+  retry:
+    instances:
+      accountService:
+        max-attempts: 3
+        wait-duration: 200ms
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - com.eventledger.gateway.exception.RetryableDownstreamException
+        ignore-exceptions:
+          - com.eventledger.gateway.exception.DownstreamRejectionException
+
+logging:
+  level:
+    root: INFO

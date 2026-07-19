@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: account-service
+  datasource:
+    url: jdbc:h2:mem:accountdb;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: false
+
+server:
+  port: 8081
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,metrics
+  endpoint:
+    health:
+      show-details: never
+
+logging:
+  level:
+    root: INFO
