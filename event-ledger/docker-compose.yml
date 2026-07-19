@@ -1,0 +1,50 @@
+version: "3.9"
+
+services:
+  account-service:
+    build:
+      context: .
+      dockerfile: account-service/Dockerfile
+    container_name: account-service
+    ports:
+      # Published to the host for local debugging/direct curl during dev and
+      # for the take-home reviewer's convenience. Architecturally this service
+      # is internal-only (only the Gateway should call it) -- in a real
+      # deployment this port mapping would be removed so the service is only
+      # reachable over the docker-network bridge below.
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8081/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 15s
+    networks:
+      - ledger-net
+
+  event-gateway:
+    build:
+      context: .
+      dockerfile: event-gateway/Dockerfile
+    container_name: event-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      account-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 15s
+    networks:
+      - ledger-net
+
+networks:
+  ledger-net:
+    driver: bridge

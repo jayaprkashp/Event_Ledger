@@ -1,0 +1,4 @@
+# No overrides currently needed -- the Account Service has no outbound
+# dependency whose URL changes between local and Docker execution. This file
+# exists so SPRING_PROFILES_ACTIVE=docker is valid for both services
+# symmetrically, and as a place to add container-specific tuning later.
