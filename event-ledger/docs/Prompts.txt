@@ -1,0 +1,38 @@
+Prompt 1:
+
+You are a senior Java Solution Architect.
+
+I have attached the project requirements.
+
+Please analyze the requirements first.
+
+Then produce the following artifacts one by one.
+
+1. High-level architecture
+2. Microservice decomposition
+3. Database design
+4. REST APIs
+5. Event flows
+6. Sequence diagrams
+7. Folder structure
+8. Maven modules
+9. Entity classes
+10. DTOs
+11. Repository interfaces
+12. Service layer
+13. Controller layer
+14. Exception handling
+15. Configuration classes
+16. Kafka integration
+17. Docker Compose
+18. Testing strategy
+
+Do not generate code until I approve each artifact.
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Prompt 2:
+
+What should be the repository structure for these 2 microservices?
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
