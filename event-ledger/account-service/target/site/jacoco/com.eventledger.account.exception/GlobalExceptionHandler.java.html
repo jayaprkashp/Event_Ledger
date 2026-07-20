@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GlobalExceptionHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Account Service</a> &gt; <a href="index.source.html" class="el_package">com.eventledger.account.exception</a> &gt; <span class="el_source">GlobalExceptionHandler.java</span></div><h1>GlobalExceptionHandler.java</h1><pre class="source lang-java linenums">package com.eventledger.account.exception;
+
+import com.eventledger.account.dto.response.ErrorResponse;
+import com.eventledger.account.tracing.TraceContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+@RestControllerAdvice
+<span class="fc" id="L15">public class GlobalExceptionHandler {</span>
+
+<span class="fc" id="L17">    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);</span>
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity&lt;ErrorResponse&gt; handleValidation(MethodArgumentNotValidException ex) {
+<span class="fc" id="L21">        String message = ex.getBindingResult().getFieldErrors().stream()</span>
+<span class="fc" id="L22">                .findFirst()</span>
+<span class="fc" id="L23">                .map(fe -&gt; fe.getField() + &quot;: &quot; + fe.getDefaultMessage())</span>
+<span class="fc" id="L24">                .orElse(&quot;Validation failed&quot;);</span>
+<span class="fc" id="L25">        return ResponseEntity.badRequest()</span>
+<span class="fc" id="L26">                .body(ErrorResponse.of(&quot;VALIDATION_ERROR&quot;, message, TraceContext.current()));</span>
+    }
+
+    @ExceptionHandler(AccountNotFoundException.class)
+    public ResponseEntity&lt;ErrorResponse&gt; handleNotFound(AccountNotFoundException ex) {
+<span class="nc" id="L31">        return ResponseEntity.status(HttpStatus.NOT_FOUND)</span>
+<span class="nc" id="L32">                .body(ErrorResponse.of(&quot;ACCOUNT_NOT_FOUND&quot;, ex.getMessage(), TraceContext.current()));</span>
+    }
+
+    @ExceptionHandler(InvalidTransactionException.class)
+    public ResponseEntity&lt;ErrorResponse&gt; handleInvalid(InvalidTransactionException ex) {
+<span class="nc" id="L37">        return ResponseEntity.badRequest()</span>
+<span class="nc" id="L38">                .body(ErrorResponse.of(&quot;INVALID_TRANSACTION&quot;, ex.getMessage(), TraceContext.current()));</span>
+    }
+
+    // Concurrent writers collided on the SAME account row despite the
+    // pessimistic lock (e.g. a lock-timeout edge case) -- surfaced as 409 so
+    // the Gateway knows a retry is meaningful, per Artifact 14's decision.
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity&lt;ErrorResponse&gt; handleConcurrentUpdate(ObjectOptimisticLockingFailureException ex) {
+<span class="nc" id="L46">        log.warn(&quot;Concurrent account update conflict traceId={}&quot;, TraceContext.current());</span>
+<span class="nc" id="L47">        return ResponseEntity.status(HttpStatus.CONFLICT)</span>
+<span class="nc" id="L48">                .body(ErrorResponse.of(&quot;CONCURRENT_UPDATE&quot;, &quot;Account was updated concurrently, please retry&quot;, TraceContext.current()));</span>
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity&lt;ErrorResponse&gt; handleUnexpected(Exception ex) {
+<span class="nc" id="L53">        log.error(&quot;Unhandled exception traceId={}&quot;, TraceContext.current(), ex);</span>
+<span class="nc" id="L54">        return ResponseEntity.internalServerError()</span>
+<span class="nc" id="L55">                .body(ErrorResponse.of(&quot;INTERNAL_ERROR&quot;, &quot;An unexpected error occurred&quot;, TraceContext.current()));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

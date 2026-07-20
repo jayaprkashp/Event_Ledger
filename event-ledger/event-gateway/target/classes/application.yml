@@ -15,11 +15,11 @@ spring:
         format_sql: false
 
 server:
-  port: 8080
+  port: 9090
 
 app:
   account-service:
-    base-url: http://localhost:8081
+    base-url: http://localhost:9091
 
 management:
   endpoints:

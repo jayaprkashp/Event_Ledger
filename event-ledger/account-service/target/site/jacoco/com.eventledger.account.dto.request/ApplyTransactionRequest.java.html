@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ApplyTransactionRequest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Account Service</a> &gt; <a href="index.source.html" class="el_package">com.eventledger.account.dto.request</a> &gt; <span class="el_source">ApplyTransactionRequest.java</span></div><h1>ApplyTransactionRequest.java</h1><pre class="source lang-java linenums"><span class="fc" id="L1">package com.eventledger.account.dto.request;</span>
+
+import jakarta.validation.constraints.*;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+
+public record ApplyTransactionRequest(
+
+    @NotBlank(message = &quot;eventId is required&quot;)
+    String eventId,
+
+    @NotBlank(message = &quot;type is required&quot;)
+    @Pattern(regexp = &quot;CREDIT|DEBIT&quot;, message = &quot;type must be CREDIT or DEBIT&quot;)
+    String type,
+
+    @NotNull(message = &quot;amount is required&quot;)
+    @DecimalMin(value = &quot;0.0&quot;, inclusive = false, message = &quot;amount must be greater than 0&quot;)
+    BigDecimal amount,
+
+    @NotBlank(message = &quot;currency is required&quot;)
+    @Size(min = 3, max = 3, message = &quot;currency must be a 3-letter code&quot;)
+    String currency,
+
+    @NotNull(message = &quot;eventTimestamp is required&quot;)
+    Instant eventTimestamp
+) {}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

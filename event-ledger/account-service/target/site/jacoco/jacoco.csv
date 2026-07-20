@@ -1,0 +1,22 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+Account Service,com.eventledger.account.domain,AccountTransaction,9,36,0,0,3,14,3,6,3,6
+Account Service,com.eventledger.account.domain,Account,16,45,0,0,5,17,3,7,3,7
+Account Service,com.eventledger.account.domain,TransactionType,0,24,0,0,0,3,0,1,0,1
+Account Service,com.eventledger.account.controller,AccountController,64,6,2,0,12,3,4,1,3,1
+Account Service,com.eventledger.account.controller,HealthController,60,6,6,0,11,3,4,1,1,1
+Account Service,com.eventledger.account.config,OpenTelemetryConfig,0,22,0,0,0,7,0,2,0,2
+Account Service,com.eventledger.account.tracing,TraceContext,3,16,0,0,1,4,1,4,1,4
+Account Service,com.eventledger.account.tracing,TraceIdFilter,6,31,2,2,1,12,2,2,0,2
+Account Service,com.eventledger.account.exception,GlobalExceptionHandler,41,31,0,0,10,8,4,4,4,4
+Account Service,com.eventledger.account.exception,InvalidTransactionException,4,0,0,0,2,0,1,0,1,0
+Account Service,com.eventledger.account.exception,AccountNotFoundException,5,0,0,0,2,0,1,0,1,0
+Account Service,com.eventledger.account.service,AccountTransactionService,44,198,1,3,6,41,6,8,5,7
+Account Service,com.eventledger.account.dto.response,TransactionResponse,0,18,0,0,0,1,0,1,0,1
+Account Service,com.eventledger.account.dto.response,TransactionResponse.AppliedTransaction,0,15,0,0,0,1,0,1,0,1
+Account Service,com.eventledger.account.dto.response,ErrorResponse.ErrorBody,0,15,0,0,0,1,0,1,0,1
+Account Service,com.eventledger.account.dto.response,BalanceResponse,15,0,0,0,1,0,1,0,1,0
+Account Service,com.eventledger.account.dto.response,AccountDetailResponse.TransactionSummary,0,15,0,0,0,1,0,1,0,1
+Account Service,com.eventledger.account.dto.response,ErrorResponse,0,17,0,0,0,2,0,2,0,2
+Account Service,com.eventledger.account.dto.response,AccountDetailResponse,0,15,0,0,0,1,0,1,0,1
+Account Service,com.eventledger.account,AccountServiceApplication,5,3,0,0,2,1,1,1,1,1
+Account Service,com.eventledger.account.dto.request,ApplyTransactionRequest,0,18,0,0,0,1,0,1,0,1

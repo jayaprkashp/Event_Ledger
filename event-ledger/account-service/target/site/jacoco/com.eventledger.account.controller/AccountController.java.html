@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AccountController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Account Service</a> &gt; <a href="index.source.html" class="el_package">com.eventledger.account.controller</a> &gt; <span class="el_source">AccountController.java</span></div><h1>AccountController.java</h1><pre class="source lang-java linenums">package com.eventledger.account.controller;
+
+import com.eventledger.account.dto.request.ApplyTransactionRequest;
+import com.eventledger.account.dto.response.AccountDetailResponse;
+import com.eventledger.account.dto.response.BalanceResponse;
+import com.eventledger.account.dto.response.TransactionResponse;
+import com.eventledger.account.service.AccountTransactionService;
+import com.eventledger.account.tracing.TraceContext;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping(&quot;/accounts&quot;)
+public class AccountController {
+
+    private final AccountTransactionService transactionService;
+
+<span class="fc" id="L20">    public AccountController(AccountTransactionService transactionService) {</span>
+<span class="fc" id="L21">        this.transactionService = transactionService;</span>
+<span class="fc" id="L22">    }</span>
+
+    @PostMapping(&quot;/{accountId}/transactions&quot;)
+    public ResponseEntity&lt;TransactionResponse&gt; applyTransaction(
+            @PathVariable String accountId,
+            @Valid @RequestBody ApplyTransactionRequest request) {
+
+<span class="nc" id="L29">        boolean alreadyExisted = transactionService.transactionExists(request.eventId());</span>
+<span class="nc" id="L30">        TransactionResponse response = transactionService.applyTransaction(accountId, request);</span>
+
+<span class="nc bnc" id="L32" title="All 2 branches missed.">        HttpStatus status = alreadyExisted ? HttpStatus.OK : HttpStatus.CREATED;</span>
+<span class="nc" id="L33">        return ResponseEntity.status(status)</span>
+<span class="nc" id="L34">                .header(&quot;X-Trace-Id&quot;, TraceContext.current())</span>
+<span class="nc" id="L35">                .body(response);</span>
+    }
+
+    @GetMapping(&quot;/{accountId}/balance&quot;)
+    public ResponseEntity&lt;BalanceResponse&gt; getBalance(@PathVariable String accountId) {
+<span class="nc" id="L40">        return ResponseEntity.ok()</span>
+<span class="nc" id="L41">                .header(&quot;X-Trace-Id&quot;, TraceContext.current())</span>
+<span class="nc" id="L42">                .body(transactionService.getBalance(accountId));</span>
+    }
+
+    @GetMapping(&quot;/{accountId}&quot;)
+    public ResponseEntity&lt;AccountDetailResponse&gt; getAccountDetail(@PathVariable String accountId) {
+<span class="nc" id="L47">        return ResponseEntity.ok()</span>
+<span class="nc" id="L48">                .header(&quot;X-Trace-Id&quot;, TraceContext.current())</span>
+<span class="nc" id="L49">                .body(transactionService.getAccountDetail(accountId));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
