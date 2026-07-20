@@ -1,0 +1,5 @@
+The below highlighted traceId is available for the same event in both account-service and event-gateway
+
+
+account-service  | {"@timestamp":"2026-07-20T18:17:09.620769033Z","@version":"1","message":"Applied transaction eventId=evt-01 accountId=acct-01 newBalance=150.0 traceId=5dc05a52-76ab-439a-9df9-c4e8def61cab","logger_name":"com.eventledger.account.service.AccountTransactionService","thread_name":"http-nio-9091-exec-3","level":"INFO","level_value":20000,"traceId":"5dc05a52-76ab-439a-9df9-c4e8def61cab","service":"account-service"}
+event-gateway    | {"@timestamp":"2026-07-20T18:17:09.677318583Z","@version":"1","message":"An event triggered with eventId=evt-01 traceId=5dc05a52-76ab-439a-9df9-c4e8def61cab","logger_name":"com.eventledger.gateway.service.EventService","thread_name":"http-nio-9090-exec-1","level":"INFO","level_value":20000,"traceId":"5dc05a52-76ab-439a-9df9-c4e8def61cab","service":"event-gateway"}
