@@ -102,3 +102,16 @@ event-ledger/event-gateway/target/test-classes/com/eventledger/gateway/repositor
 event-ledger/event-gateway/target/test-classes/com/eventledger/gateway/resiliency/CircuitBreakerTest.class
 event-ledger/event-gateway/target/test-classes/com/eventledger/gateway/service/EventServiceTest.class
 event-ledger/event-gateway/target/test-classes/com/eventledger/gateway/tracing/TracePropagationTest.class
+event-ledger/account-service/target/classes/META-INF/maven/com.eventledger/account-service/pom.properties
+event-ledger/account-service/target/classes/META-INF/MANIFEST.MF
+event-ledger/account-service/target/classes/META-INF/maven/com.eventledger/account-service/pom.xml
+event-ledger/event-gateway/target/classes/com/eventledger/gateway/client/ResilientAccountServiceInvoker.class
+event-ledger/event-gateway/target/classes/application.yml
+event-ledger/event-gateway/target/classes/META-INF/MANIFEST.MF
+event-ledger/event-gateway/target/classes/META-INF/maven/com.eventledger/event-gateway/pom.properties
+event-ledger/event-gateway/target/classes/META-INF/maven/com.eventledger/event-gateway/pom.xml
+event-ledger/event-gateway/target/classes/application.yml
+event-ledger/event-gateway/target/classes/application.yml
+event-ledger/event-gateway/target/classes/application.yml
+event-ledger/event-gateway/target/classes/application.yml
+event-ledger/event-gateway/target/classes/application.yml

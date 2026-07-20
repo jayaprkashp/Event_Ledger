@@ -1,5 +1,7 @@
 package com.eventledger.gateway.tracing;
 
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,6 +25,19 @@ class TracePropagationTest {
 
     @Autowired
     TestRestTemplate restTemplate;
+
+    @Autowired
+    CircuitBreakerRegistry circuitBreakerRegistry;
+
+    // Same identical @SpringBootTest signature as CircuitBreakerTest means
+    // Spring reuses that class's ApplicationContext, including its
+    // CircuitBreakerRegistry. If CircuitBreakerTest left the breaker OPEN,
+    // every call here would fail fast without ever reaching WireMock --
+    // exactly the "Requests received: []" failure this reset prevents.
+    @BeforeEach
+    void resetCircuitBreaker() {
+        circuitBreakerRegistry.circuitBreaker("accountService").reset();
+    }
 
     private Map<String, Object> eventPayload(String eventId) {
         return Map.of(

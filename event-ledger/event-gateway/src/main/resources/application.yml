@@ -15,7 +15,7 @@ spring:
         format_sql: false
 
 server:
-  port: 9090
+  port: 8080
 
 app:
   account-service:
@@ -45,10 +45,10 @@ resilience4j:
           - com.eventledger.gateway.exception.AccountServiceUnavailableException
         ignore-exceptions:
           - com.eventledger.gateway.exception.DownstreamRejectionException
-  timelimiter:
-    instances:
-      accountService:
-        timeout-duration: 3s
+  # No timelimiter section -- ResilientAccountServiceInvoker is a plain
+  # synchronous method now (see its Javadoc), so the timeout is enforced by
+  # RestClientConfig's connect/read timeouts on the underlying HTTP call
+  # instead of a Resilience4j TimeLimiter wrapping a CompletableFuture.
   retry:
     instances:
       accountService:

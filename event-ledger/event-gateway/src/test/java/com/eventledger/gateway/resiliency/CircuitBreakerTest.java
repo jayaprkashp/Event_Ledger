@@ -3,6 +3,7 @@ package com.eventledger.gateway.resiliency;
 import com.eventledger.gateway.dto.response.EventResponse;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,6 +29,18 @@ class CircuitBreakerTest {
 
     @Autowired
     CircuitBreakerRegistry circuitBreakerRegistry;
+
+    // CircuitBreakerTest and TracePropagationTest share an identical
+    // @SpringBootTest/@AutoConfigureWireMock/@ActiveProfiles signature, so
+    // Spring's test context cache reuses the SAME ApplicationContext (and
+    // therefore the same CircuitBreakerRegistry singleton) across both test
+    // classes. Without an explicit reset, a breaker left OPEN by one test
+    // method leaks into every test that runs after it, in either class.
+    // reset() returns the breaker to CLOSED and clears its recorded metrics.
+    @BeforeEach
+    void resetCircuitBreaker() {
+        circuitBreakerRegistry.circuitBreaker("accountService").reset();
+    }
 
     private Map<String, Object> eventPayload(String eventId) {
         return Map.of(
@@ -69,7 +82,10 @@ class CircuitBreakerTest {
             restTemplate.postForEntity("/events", eventPayload("evt-read-" + i), EventResponse.class);
         }
 
-        var response = restTemplate.getForEntity("/events?account=acct-cb-test", Map.class);
+        // GET /events?account= returns a JSON ARRAY (List<EventResponse>), not
+        // an object -- deserializing into Map.class fails outright. Use the
+        // correct array type instead.
+        var response = restTemplate.getForEntity("/events?account=acct-cb-test", EventResponse[].class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 }
