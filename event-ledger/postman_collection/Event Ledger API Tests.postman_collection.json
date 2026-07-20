@@ -1938,6 +1938,51 @@
         }
       ],
       "description": "Requires manually stopping/restarting the Account Service mid-folder -- read each request's description before running. Run this folder on its own, not as part of a full collection run."
+    },
+    {
+      "name": "Metrics",
+      "item": [
+        {
+          "name": "Prometheus_Event_Gateway",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:9090/actuator/prometheus",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "9090",
+              "path": [
+                "actuator",
+                "prometheus"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Prometheus_AccountService",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:9091/actuator/prometheus",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "9091",
+              "path": [
+                "actuator",
+                "prometheus"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "event": [

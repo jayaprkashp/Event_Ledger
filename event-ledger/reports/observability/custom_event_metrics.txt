@@ -1,0 +1,10 @@
+Event(custom) metrics for event gateway : http://localhost:9090/actuator/prometheus
+
+Note: This is a custom metrics on the events submitted to the event-gateway
+
+# HELP events_submitted_total  
+# TYPE events_submitted_total counter
+events_submitted_total{outcome="account_service_unavailable"} 0.0
+events_submitted_total{outcome="applied"} 2.0
+events_submitted_total{outcome="downstream_rejected"} 0.0
+events_submitted_total{outcome="duplicate"} 1.0

@@ -87,19 +87,14 @@ during startup.
 
 > **Note on the Account Service's exposed port:** architecturally the Account Service is
 > internal-only — only the Gateway should call it. `docker-compose.yml` still publishes
-> `8081:8081` to the host for local debugging and so you can exercise it directly while
+> `9091:9091` to the host for local debugging and so you can exercise it directly while
 > reviewing this project (e.g. to simulate an outage with `docker compose stop account-service`
-> and watch the Gateway degrade gracefully). In a production deployment, that port mapping would
-> be removed so the service is reachable only over the internal `ledger-net` bridge network.
+> and watch the Gateway degrade gracefully). 
+### custom metrics - event metrics
 
-### Simulating an outage manually
+An account of the submitted events are tracked using micrometer, and it is available at 
+http://localhost:9090/actuator/prometheus
 
-```bash
-docker compose stop account-service
-curl -X POST localhost:8080/events -H 'Content-Type: application/json' -d '{...}'   # expect 503
-curl localhost:8080/events?account=acct-123                                          # still 200
-docker compose start account-service   # breaker should recover to CLOSED within ~10s
-```
 
 ## Running the tests
 
@@ -114,9 +109,19 @@ validation, circuit breaker behavior, and trace propagation. `mvn verify` additi
 against a MockServer stub standing in for the Account Service (a contract-level integration
 test — Docker Compose is what exercises the two *real* processes together end-to-end).
 
-## Resiliency pattern: circuit breaker
+## Reports
 
+In the event-ledger/reports, the reports related to the below items are available,
+  
+  - account_service_code_coverage
+  - account_service_test_coverage
+  - event_service_code_coverage
+  - event_service_test_coverage
+  - observability
+  - traceability
 
+## Postman Collection
 
-## What's out of scope
+The event-ledger/postman_collection contains all the endpoints for manual testing done on this application.
+
 
