@@ -15,7 +15,7 @@ spring:
         format_sql: false
 
 server:
-  port: 8080
+  port: 9090
 
 app:
   account-service:

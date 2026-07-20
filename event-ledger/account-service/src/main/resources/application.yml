@@ -15,7 +15,7 @@ spring:
         format_sql: false
 
 server:
-  port: 8081
+  port: 9091
 
 management:
   endpoints:
