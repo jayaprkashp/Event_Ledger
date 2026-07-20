@@ -36,3 +36,9 @@ Prompt 2:
 What should be the repository structure for these 2 microservices?
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Prompt 3:
+
+Create a post collection to test all end points with both positive and negative scenarios
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
