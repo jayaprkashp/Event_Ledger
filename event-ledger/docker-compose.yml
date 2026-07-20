@@ -12,11 +12,11 @@ services:
       # is internal-only (only the Gateway should call it) -- in a real
       # deployment this port mapping would be removed so the service is only
       # reachable over the docker-network bridge below.
-      - "8081:8081"
+      - "9091:9091"
     environment:
       SPRING_PROFILES_ACTIVE: docker
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8081/health"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:9091/health"]
       interval: 5s
       timeout: 3s
       retries: 5
@@ -30,14 +30,14 @@ services:
       dockerfile: event-gateway/Dockerfile
     container_name: event-gateway
     ports:
-      - "8080:8080"
+      - "9090:9090"
     environment:
       SPRING_PROFILES_ACTIVE: docker
     depends_on:
       account-service:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:9090/health"]
       interval: 5s
       timeout: 3s
       retries: 5
