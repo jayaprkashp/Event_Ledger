@@ -1,113 +1,21 @@
 {
   "info": {
+    "_postman_id": "c5b41449-6505-4252-95cf-f31121af7ed3",
     "name": "Event Ledger API Tests",
     "description": "Positive and negative scenario coverage for both microservices in the Event Ledger system: the Event Gateway (public-facing, localhost:8080) and the Account Service (internal, localhost:8081).\n\nHOW TO RUN:\n1. Start both services (docker compose up, or mvn spring-boot:run in each module).\n2. Run 'Event Gateway' and 'Account Service (Direct)' folders top-to-bottom using the Collection Runner -- several requests depend on IDs set by earlier requests in the same run (e.g. the duplicate-submission tests reuse the eventId from the first CREDIT submission).\n3. The 'Resiliency & Graceful Degradation' folder requires manually stopping the Account Service partway through -- see each request's description for the exact precondition and cleanup step. Run this folder separately, not as part of a full top-to-bottom collection run, so you don't leave the Account Service stopped for the other folders.\n\nBase URLs are collection variables (gatewayBaseUrl, accountBaseUrl) -- edit them if your services run on different hosts/ports (e.g. via Docker Compose vs local mvn spring-boot:run, which use the same ports by default here, so no change should be needed either way).",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "56241378",
+    "_collection_link": "https://go.postman.co/collection/56241378-c5b41449-6505-4252-95cf-f31121af7ed3?source=collection_link"
   },
-  "variable": [
-    {
-      "key": "gatewayBaseUrl",
-      "value": "http://localhost:8080",
-      "type": "string"
-    },
-    {
-      "key": "accountBaseUrl",
-      "value": "http://localhost:8081",
-      "type": "string"
-    },
-    {
-      "key": "gwCreditEventId",
-      "value": "",
-      "type": "string"
-    },
-    {
-      "key": "gwDebitEventId",
-      "value": "",
-      "type": "string"
-    },
-    {
-      "key": "gwAccountId",
-      "value": "",
-      "type": "string"
-    },
-    {
-      "key": "asAccountId",
-      "value": "",
-      "type": "string"
-    },
-    {
-      "key": "asEventId",
-      "value": "",
-      "type": "string"
-    },
-    {
-      "key": "asDebitEventId",
-      "value": "",
-      "type": "string"
-    },
-    {
-      "key": "resilEventId",
-      "value": "",
-      "type": "string"
-    },
-    {
-      "key": "resilAccountId",
-      "value": "",
-      "type": "string"
-    }
-  ],
-  "event": [
-    {
-      "listen": "prerequest",
-      "script": {
-        "exec": [
-          "// Runs before every request in the collection.",
-          "// Lazily seeds a few shared, per-run-unique IDs so requests that",
-          "// depend on state created by an earlier request (duplicate checks,",
-          "// get-by-id, list-by-account) stay consistent across a full collection",
-          "// run, while still being unique between separate runs.",
-          "if (!pm.collectionVariables.get('gwAccountId')) {",
-          "    pm.collectionVariables.set('gwAccountId', 'acct-postman-' + Date.now());",
-          "}"
-        ],
-        "type": "text/javascript"
-      }
-    }
-  ],
   "item": [
     {
       "name": "Event Gateway",
-      "description": "Public-facing entry point. All requests target gatewayBaseUrl (default localhost:8080).",
       "item": [
         {
           "name": "POST /events - Positive",
-          "description": "Happy-path submissions. Requires the Account Service to be running.",
           "item": [
             {
               "name": "Submit new CREDIT event",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{gatewayBaseUrl}}/events"
-                },
-                "description": "Happy path: brand-new eventId, Account Service reachable. Expect 201, status APPLIED, and a balance in the response.",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"eventId\": \"{{gwCreditEventId}}\",\n  \"accountId\": \"{{gwAccountId}}\",\n  \"type\": \"CREDIT\",\n  \"amount\": 150.0,\n  \"currency\": \"USD\",\n  \"eventTimestamp\": \"2026-05-15T14:02:11Z\",\n  \"metadata\": {\n    \"source\": \"postman\",\n    \"batchId\": \"B-9042\"\n  }\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
-              },
-              "response": [],
               "event": [
                 {
                   "listen": "prerequest",
@@ -115,7 +23,9 @@
                     "exec": [
                       "pm.collectionVariables.set('gwCreditEventId', 'evt-credit-' + Date.now());"
                     ],
-                    "type": "text/javascript"
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 },
                 {
@@ -139,13 +49,12 @@
                       "    pm.expect(json.balance).to.be.a('number');",
                       "});"
                     ],
-                    "type": "text/javascript"
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
-              ]
-            },
-            {
-              "name": "Submit new DEBIT event (same account)",
+              ],
               "request": {
                 "method": "POST",
                 "header": [
@@ -154,21 +63,32 @@
                     "value": "application/json"
                   }
                 ],
-                "url": {
-                  "raw": "{{gatewayBaseUrl}}/events"
-                },
-                "description": "Second event on the same account, opposite type. Also exercises out-of-order tolerance in spirit: run alongside the CREDIT above and confirm the balance reflects both regardless of ordering.",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"eventId\": \"{{gwDebitEventId}}\",\n  \"accountId\": \"{{gwAccountId}}\",\n  \"type\": \"DEBIT\",\n  \"amount\": 40.0,\n  \"currency\": \"USD\",\n  \"eventTimestamp\": \"2026-05-15T13:00:00Z\"\n}",
+                  "raw": "{\n  \"eventId\": \"evt-01\",\n  \"accountId\": \"acct-01\",\n  \"type\": \"CREDIT\",\n  \"amount\": 150.0,\n  \"currency\": \"USD\",\n  \"eventTimestamp\": \"2026-05-15T14:02:11Z\",\n  \"metadata\": {\n    \"source\": \"postman\",\n    \"batchId\": \"B-9042\"\n  }\n}",
                   "options": {
                     "raw": {
                       "language": "json"
                     }
                   }
-                }
+                },
+                "url": {
+                  "raw": "http://localhost:9090/events",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "9090",
+                  "path": [
+                    "events"
+                  ]
+                },
+                "description": "Happy path: brand-new eventId, Account Service reachable. Expect 201, status APPLIED, and a balance in the response."
               },
-              "response": [],
+              "response": []
+            },
+            {
+              "name": "Submit new DEBIT event (same account)",
               "event": [
                 {
                   "listen": "prerequest",
@@ -176,7 +96,9 @@
                     "exec": [
                       "pm.collectionVariables.set('gwDebitEventId', 'evt-debit-' + Date.now());"
                     ],
-                    "type": "text/javascript"
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 },
                 {
@@ -194,13 +116,12 @@
                       "    pm.expect(json.balance).to.eql(110.0);",
                       "});"
                     ],
-                    "type": "text/javascript"
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
-              ]
-            },
-            {
-              "name": "Submit duplicate event (same eventId as CREDIT above)",
+              ],
               "request": {
                 "method": "POST",
                 "header": [
@@ -209,21 +130,32 @@
                     "value": "application/json"
                   }
                 ],
-                "url": {
-                  "raw": "{{gatewayBaseUrl}}/events"
-                },
-                "description": "Re-submits the exact same eventId as 'Submit new CREDIT event'. Must run AFTER that request in the same collection run. Expect 200 (not 201), original event returned unchanged, and no second balance mutation.",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"eventId\": \"{{gwCreditEventId}}\",\n  \"accountId\": \"{{gwAccountId}}\",\n  \"type\": \"CREDIT\",\n  \"amount\": 150.0,\n  \"currency\": \"USD\",\n  \"eventTimestamp\": \"2026-05-15T14:02:11Z\",\n  \"metadata\": {\n    \"source\": \"postman\",\n    \"batchId\": \"B-9042\"\n  }\n}",
+                  "raw": "{\n  \"eventId\": \"evt-02\",\n  \"accountId\": \"acct-01\",\n  \"type\": \"DEBIT\",\n  \"amount\": 40.0,\n  \"currency\": \"USD\",\n  \"eventTimestamp\": \"2026-05-15T13:00:00Z\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
                     }
                   }
-                }
+                },
+                "url": {
+                  "raw": "http://localhost:9090/events",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "9090",
+                  "path": [
+                    "events"
+                  ]
+                },
+                "description": "Second event on the same account, opposite type. Also exercises out-of-order tolerance in spirit: run alongside the CREDIT above and confirm the balance reflects both regardless of ordering."
               },
-              "response": [],
+              "response": []
+            },
+            {
+              "name": "Submit duplicate event (same eventId as CREDIT above)",
               "event": [
                 {
                   "listen": "test",
@@ -240,19 +172,12 @@
                       "    pm.expect(json.balance).to.eql(110.0);",
                       "});"
                     ],
-                    "type": "text/javascript"
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
-              ]
-            }
-          ]
-        },
-        {
-          "name": "POST /events - Negative / Validation",
-          "description": "Malformed or invalid submissions. Does not require the Account Service.",
-          "item": [
-            {
-              "name": "Missing eventId",
+              ],
               "request": {
                 "method": "POST",
                 "header": [
@@ -261,21 +186,38 @@
                     "value": "application/json"
                   }
                 ],
-                "url": {
-                  "raw": "{{gatewayBaseUrl}}/events"
-                },
-                "description": "eventId omitted entirely. Expect 400 VALIDATION_ERROR.",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"accountId\": \"acct-neg-test\",\n  \"type\": \"CREDIT\",\n  \"amount\": 10.0,\n  \"currency\": \"USD\",\n  \"eventTimestamp\": \"2026-05-15T14:00:00Z\"\n}",
+                  "raw": "{\n  \"eventId\": \"evt-01\",\n  \"accountId\": \"acct-01\",\n  \"type\": \"CREDIT\",\n  \"amount\": 150.0,\n  \"currency\": \"USD\",\n  \"eventTimestamp\": \"2026-05-15T14:02:11Z\",\n  \"metadata\": {\n    \"source\": \"postman\",\n    \"batchId\": \"B-9042\"\n  }\n}",
                   "options": {
                     "raw": {
                       "language": "json"
                     }
                   }
-                }
+                },
+                "url": {
+                  "raw": "http://localhost:9090/events",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "9090",
+                  "path": [
+                    "events"
+                  ]
+                },
+                "description": "Re-submits the exact same eventId as 'Submit new CREDIT event'. Must run AFTER that request in the same collection run. Expect 200 (not 201), original event returned unchanged, and no second balance mutation."
               },
-              "response": [],
+              "response": []
+            }
+          ],
+          "description": "Happy-path submissions. Requires the Account Service to be running."
+        },
+        {
+          "name": "POST /events - Negative / Validation",
+          "item": [
+            {
+              "name": "Missing eventId",
               "event": [
                 {
                   "listen": "test",
@@ -295,13 +237,12 @@
                       "    pm.expect(json.error.traceId).to.be.a('string').and.not.empty;",
                       "});"
                     ],
-                    "type": "text/javascript"
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
-              ]
-            },
-            {
-              "name": "Missing accountId",
+              ],
               "request": {
                 "method": "POST",
                 "header": [
@@ -310,21 +251,32 @@
                     "value": "application/json"
                   }
                 ],
-                "url": {
-                  "raw": "{{gatewayBaseUrl}}/events"
-                },
-                "description": "accountId omitted entirely. Expect 400 VALIDATION_ERROR.",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"eventId\": \"evt-neg-noaccount\",\n  \"type\": \"CREDIT\",\n  \"amount\": 10.0,\n  \"currency\": \"USD\",\n  \"eventTimestamp\": \"2026-05-15T14:00:00Z\"\n}",
+                  "raw": "{\n  \"accountId\": \"acct-neg-test\",\n  \"type\": \"CREDIT\",\n  \"amount\": 10.0,\n  \"currency\": \"USD\",\n  \"eventTimestamp\": \"2026-05-15T14:00:00Z\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
                     }
                   }
-                }
+                },
+                "url": {
+                  "raw": "http://localhost:9090/events",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "9090",
+                  "path": [
+                    "events"
+                  ]
+                },
+                "description": "eventId omitted entirely. Expect 400 VALIDATION_ERROR."
               },
-              "response": [],
+              "response": []
+            },
+            {
+              "name": "Missing accountId",
               "event": [
                 {
                   "listen": "test",
@@ -344,13 +296,12 @@
                       "    pm.expect(json.error.traceId).to.be.a('string').and.not.empty;",
                       "});"
                     ],
-                    "type": "text/javascript"
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
-              ]
-            },
-            {
-              "name": "Invalid type (not CREDIT/DEBIT)",
+              ],
               "request": {
                 "method": "POST",
                 "header": [
@@ -359,21 +310,32 @@
                     "value": "application/json"
                   }
                 ],
-                "url": {
-                  "raw": "{{gatewayBaseUrl}}/events"
-                },
-                "description": "type is 'TRANSFER', which is not an accepted value. Expect 400.",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"eventId\": \"evt-neg-badtype\",\n  \"accountId\": \"acct-neg-test\",\n  \"type\": \"TRANSFER\",\n  \"amount\": 10.0,\n  \"currency\": \"USD\",\n  \"eventTimestamp\": \"2026-05-15T14:00:00Z\"\n}",
+                  "raw": "{\n  \"eventId\": \"evt-neg-noaccount\",\n  \"type\": \"CREDIT\",\n  \"amount\": 10.0,\n  \"currency\": \"USD\",\n  \"eventTimestamp\": \"2026-05-15T14:00:00Z\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
                     }
                   }
-                }
+                },
+                "url": {
+                  "raw": "http://localhost:9090/events",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "9090",
+                  "path": [
+                    "events"
+                  ]
+                },
+                "description": "accountId omitted entirely. Expect 400 VALIDATION_ERROR."
               },
-              "response": [],
+              "response": []
+            },
+            {
+              "name": "Invalid type (not CREDIT/DEBIT)",
               "event": [
                 {
                   "listen": "test",
@@ -393,13 +355,12 @@
                       "    pm.expect(json.error.traceId).to.be.a('string').and.not.empty;",
                       "});"
                     ],
-                    "type": "text/javascript"
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
-              ]
-            },
-            {
-              "name": "Negative amount",
+              ],
               "request": {
                 "method": "POST",
                 "header": [
@@ -408,10 +369,65 @@
                     "value": "application/json"
                   }
                 ],
-                "url": {
-                  "raw": "{{gatewayBaseUrl}}/events"
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"eventId\": \"evt-neg-badtype\",\n  \"accountId\": \"acct-neg-test\",\n  \"type\": \"TRANSFER\",\n  \"amount\": 10.0,\n  \"currency\": \"USD\",\n  \"eventTimestamp\": \"2026-05-15T14:00:00Z\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 },
-                "description": "amount is negative. Expect 400 -- amount must be > 0.",
+                "url": {
+                  "raw": "http://localhost:9090/events",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "9090",
+                  "path": [
+                    "events"
+                  ]
+                },
+                "description": "type is 'TRANSFER', which is not an accepted value. Expect 400."
+              },
+              "response": []
+            },
+            {
+              "name": "Negative amount",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 400 Bad Request', function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "var json = pm.response.json();",
+                      "pm.test('error.code is VALIDATION_ERROR', function () {",
+                      "    pm.expect(json.error.code).to.eql('VALIDATION_ERROR');",
+                      "});",
+                      "pm.test('message references the invalid field', function () {",
+                      "    pm.expect(json.error.message.toLowerCase()).to.include('amount');",
+                      "});",
+                      "pm.test('error response includes a traceId', function () {",
+                      "    pm.expect(json.error.traceId).to.be.a('string').and.not.empty;",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"eventId\": \"evt-neg-negamount\",\n  \"accountId\": \"acct-neg-test\",\n  \"type\": \"CREDIT\",\n  \"amount\": -5.0,\n  \"currency\": \"USD\",\n  \"eventTimestamp\": \"2026-05-15T14:00:00Z\"\n}",
@@ -420,9 +436,24 @@
                       "language": "json"
                     }
                   }
-                }
+                },
+                "url": {
+                  "raw": "http://localhost:9090/events",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "9090",
+                  "path": [
+                    "events"
+                  ]
+                },
+                "description": "amount is negative. Expect 400 -- amount must be > 0."
               },
-              "response": [],
+              "response": []
+            },
+            {
+              "name": "Zero amount",
               "event": [
                 {
                   "listen": "test",
@@ -442,13 +473,12 @@
                       "    pm.expect(json.error.traceId).to.be.a('string').and.not.empty;",
                       "});"
                     ],
-                    "type": "text/javascript"
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
-              ]
-            },
-            {
-              "name": "Zero amount",
+              ],
               "request": {
                 "method": "POST",
                 "header": [
@@ -457,10 +487,6 @@
                     "value": "application/json"
                   }
                 ],
-                "url": {
-                  "raw": "{{gatewayBaseUrl}}/events"
-                },
-                "description": "amount is exactly 0. Expect 400 -- amount must be strictly greater than 0.",
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"eventId\": \"evt-neg-zeroamount\",\n  \"accountId\": \"acct-neg-test\",\n  \"type\": \"CREDIT\",\n  \"amount\": 0,\n  \"currency\": \"USD\",\n  \"eventTimestamp\": \"2026-05-15T14:00:00Z\"\n}",
@@ -469,9 +495,24 @@
                       "language": "json"
                     }
                   }
-                }
+                },
+                "url": {
+                  "raw": "http://localhost:9090/events",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "9090",
+                  "path": [
+                    "events"
+                  ]
+                },
+                "description": "amount is exactly 0. Expect 400 -- amount must be strictly greater than 0."
               },
-              "response": [],
+              "response": []
+            },
+            {
+              "name": "Missing currency",
               "event": [
                 {
                   "listen": "test",
@@ -485,19 +526,18 @@
                       "    pm.expect(json.error.code).to.eql('VALIDATION_ERROR');",
                       "});",
                       "pm.test('message references the invalid field', function () {",
-                      "    pm.expect(json.error.message.toLowerCase()).to.include('amount');",
+                      "    pm.expect(json.error.message.toLowerCase()).to.include('currency');",
                       "});",
                       "pm.test('error response includes a traceId', function () {",
                       "    pm.expect(json.error.traceId).to.be.a('string').and.not.empty;",
                       "});"
                     ],
-                    "type": "text/javascript"
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
-              ]
-            },
-            {
-              "name": "Missing currency",
+              ],
               "request": {
                 "method": "POST",
                 "header": [
@@ -506,10 +546,6 @@
                     "value": "application/json"
                   }
                 ],
-                "url": {
-                  "raw": "{{gatewayBaseUrl}}/events"
-                },
-                "description": "currency omitted entirely. Expect 400.",
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"eventId\": \"evt-neg-nocurrency\",\n  \"accountId\": \"acct-neg-test\",\n  \"type\": \"CREDIT\",\n  \"amount\": 10.0,\n  \"eventTimestamp\": \"2026-05-15T14:00:00Z\"\n}",
@@ -518,9 +554,24 @@
                       "language": "json"
                     }
                   }
-                }
+                },
+                "url": {
+                  "raw": "http://localhost:9090/events",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "9090",
+                  "path": [
+                    "events"
+                  ]
+                },
+                "description": "currency omitted entirely. Expect 400."
               },
-              "response": [],
+              "response": []
+            },
+            {
+              "name": "Invalid currency length",
               "event": [
                 {
                   "listen": "test",
@@ -540,13 +591,12 @@
                       "    pm.expect(json.error.traceId).to.be.a('string').and.not.empty;",
                       "});"
                     ],
-                    "type": "text/javascript"
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
-              ]
-            },
-            {
-              "name": "Invalid currency length",
+              ],
               "request": {
                 "method": "POST",
                 "header": [
@@ -555,10 +605,6 @@
                     "value": "application/json"
                   }
                 ],
-                "url": {
-                  "raw": "{{gatewayBaseUrl}}/events"
-                },
-                "description": "currency is 'US' (2 letters) instead of a 3-letter code. Expect 400.",
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"eventId\": \"evt-neg-shortcurrency\",\n  \"accountId\": \"acct-neg-test\",\n  \"type\": \"CREDIT\",\n  \"amount\": 10.0,\n  \"currency\": \"US\",\n  \"eventTimestamp\": \"2026-05-15T14:00:00Z\"\n}",
@@ -567,58 +613,24 @@
                       "language": "json"
                     }
                   }
-                }
+                },
+                "url": {
+                  "raw": "http://localhost:9090/events",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "9090",
+                  "path": [
+                    "events"
+                  ]
+                },
+                "description": "currency is 'US' (2 letters) instead of a 3-letter code. Expect 400."
               },
-              "response": [],
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test('Status is 400 Bad Request', function () {",
-                      "    pm.response.to.have.status(400);",
-                      "});",
-                      "var json = pm.response.json();",
-                      "pm.test('error.code is VALIDATION_ERROR', function () {",
-                      "    pm.expect(json.error.code).to.eql('VALIDATION_ERROR');",
-                      "});",
-                      "pm.test('message references the invalid field', function () {",
-                      "    pm.expect(json.error.message.toLowerCase()).to.include('currency');",
-                      "});",
-                      "pm.test('error response includes a traceId', function () {",
-                      "    pm.expect(json.error.traceId).to.be.a('string').and.not.empty;",
-                      "});"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ]
+              "response": []
             },
             {
               "name": "Missing eventTimestamp",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{gatewayBaseUrl}}/events"
-                },
-                "description": "eventTimestamp omitted entirely. Expect 400.",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"eventId\": \"evt-neg-notimestamp\",\n  \"accountId\": \"acct-neg-test\",\n  \"type\": \"CREDIT\",\n  \"amount\": 10.0,\n  \"currency\": \"USD\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
-              },
-              "response": [],
               "event": [
                 {
                   "listen": "test",
@@ -638,13 +650,12 @@
                       "    pm.expect(json.error.traceId).to.be.a('string').and.not.empty;",
                       "});"
                     ],
-                    "type": "text/javascript"
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
-              ]
-            },
-            {
-              "name": "Malformed JSON body",
+              ],
               "request": {
                 "method": "POST",
                 "header": [
@@ -653,21 +664,32 @@
                     "value": "application/json"
                   }
                 ],
-                "url": {
-                  "raw": "{{gatewayBaseUrl}}/events"
-                },
-                "description": "Body is not valid JSON at all (unparseable). KNOWN GAP: the current GlobalExceptionHandler has no @ExceptionHandler for HttpMessageNotReadableException, so this currently falls through to the catch-all handler and returns 500 INTERNAL_ERROR instead of a 400. This test asserts the SPEC-correct 400 -- if it fails with 500, that's this known gap, not a new bug. Fix: add a dedicated @ExceptionHandler(HttpMessageNotReadableException.class) returning 400.",
                 "body": {
                   "mode": "raw",
-                  "raw": "{ \"eventId\": \"evt-malformed\", \"accountId\": \"acct-neg-test\", type: CREDIT missing-quotes-and-comma }",
+                  "raw": "{\n  \"eventId\": \"evt-neg-notimestamp\",\n  \"accountId\": \"acct-neg-test\",\n  \"type\": \"CREDIT\",\n  \"amount\": 10.0,\n  \"currency\": \"USD\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
                     }
                   }
-                }
+                },
+                "url": {
+                  "raw": "http://localhost:9090/events",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "9090",
+                  "path": [
+                    "events"
+                  ]
+                },
+                "description": "eventTimestamp omitted entirely. Expect 400."
               },
-              "response": [],
+              "response": []
+            },
+            {
+              "name": "Malformed JSON body",
               "event": [
                 {
                   "listen": "test",
@@ -677,33 +699,52 @@
                       "    pm.response.to.have.status(400);",
                       "});"
                     ],
-                    "type": "text/javascript"
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
-              ]
-            }
-          ]
-        },
-        {
-          "name": "GET /events/{id}",
-          "description": "Local-only lookups by eventId.",
-          "item": [
-            {
-              "name": "Get existing event by ID",
+              ],
               "request": {
-                "method": "GET",
+                "method": "POST",
                 "header": [
                   {
                     "key": "Content-Type",
                     "value": "application/json"
                   }
                 ],
-                "url": {
-                  "raw": "{{gatewayBaseUrl}}/events/{{gwCreditEventId}}"
+                "body": {
+                  "mode": "raw",
+                  "raw": "{ \"eventId\": \"evt-malformed\", \"accountId\": \"acct-neg-test\", type: CREDIT missing-quotes-and-comma }",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 },
-                "description": "Fetches the event created by 'Submit new CREDIT event'. Must run after that request. Works purely from Gateway-local storage."
+                "url": {
+                  "raw": "http://localhost:9090/events",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "9090",
+                  "path": [
+                    "events"
+                  ]
+                },
+                "description": "Body is not valid JSON at all (unparseable). KNOWN GAP: the current GlobalExceptionHandler has no @ExceptionHandler for HttpMessageNotReadableException, so this currently falls through to the catch-all handler and returns 500 INTERNAL_ERROR instead of a 400. This test asserts the SPEC-correct 400 -- if it fails with 500, that's this known gap, not a new bug. Fix: add a dedicated @ExceptionHandler(HttpMessageNotReadableException.class) returning 400."
               },
-              "response": [],
+              "response": []
+            }
+          ],
+          "description": "Malformed or invalid submissions. Does not require the Account Service."
+        },
+        {
+          "name": "GET /events/{id}",
+          "item": [
+            {
+              "name": "Get existing event by ID",
               "event": [
                 {
                   "listen": "test",
@@ -717,13 +758,12 @@
                       "    pm.expect(json.eventId).to.eql(pm.collectionVariables.get('gwCreditEventId'));",
                       "});"
                     ],
-                    "type": "text/javascript"
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
-              ]
-            },
-            {
-              "name": "Get non-existent event",
+              ],
               "request": {
                 "method": "GET",
                 "header": [
@@ -733,11 +773,23 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{gatewayBaseUrl}}/events/evt-does-not-exist-12345"
+                  "raw": "http://localhost:9090/events/evt-02",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "9090",
+                  "path": [
+                    "events",
+                    "evt-02"
+                  ]
                 },
-                "description": "Requests an eventId that was never submitted. Expect 404 EVENT_NOT_FOUND."
+                "description": "Fetches the event created by 'Submit new CREDIT event'. Must run after that request. Works purely from Gateway-local storage."
               },
-              "response": [],
+              "response": []
+            },
+            {
+              "name": "Get non-existent event",
               "event": [
                 {
                   "listen": "test",
@@ -751,19 +803,12 @@
                       "    pm.expect(json.error.code).to.eql('EVENT_NOT_FOUND');",
                       "});"
                     ],
-                    "type": "text/javascript"
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
-              ]
-            }
-          ]
-        },
-        {
-          "name": "GET /events?account=",
-          "description": "Local-only listing by accountId, chronologically ordered.",
-          "item": [
-            {
-              "name": "List events for account",
+              ],
               "request": {
                 "method": "GET",
                 "header": [
@@ -773,11 +818,29 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{gatewayBaseUrl}}/events?account={{gwAccountId}}"
+                  "raw": "http://localhost:9090/events/evt-07",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "9090",
+                  "path": [
+                    "events",
+                    "evt-07"
+                  ]
                 },
-                "description": "Lists both the CREDIT and DEBIT events submitted above for the same account. Must run after both of those requests. Verifies chronological (eventTimestamp) ordering, not insertion order -- the DEBIT event has an EARLIER eventTimestamp than the CREDIT despite being submitted second."
+                "description": "Requests an eventId that was never submitted. Expect 404 EVENT_NOT_FOUND."
               },
-              "response": [],
+              "response": []
+            }
+          ],
+          "description": "Local-only lookups by eventId."
+        },
+        {
+          "name": "GET /events?account=",
+          "item": [
+            {
+              "name": "List events for account",
               "event": [
                 {
                   "listen": "test",
@@ -801,13 +864,12 @@
                       "    pm.expect(debitIdx).to.be.lessThan(creditIdx);",
                       "});"
                     ],
-                    "type": "text/javascript"
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
-              ]
-            },
-            {
-              "name": "List events - missing account query param",
+              ],
               "request": {
                 "method": "GET",
                 "header": [
@@ -817,11 +879,29 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{gatewayBaseUrl}}/events"
+                  "raw": "http://localhost:9090/events?account=acct-01",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "9090",
+                  "path": [
+                    "events"
+                  ],
+                  "query": [
+                    {
+                      "key": "account",
+                      "value": "acct-01",
+                      "type": "text"
+                    }
+                  ]
                 },
-                "description": "Omits the required 'account' query parameter entirely. Expect 400."
+                "description": "Lists both the CREDIT and DEBIT events submitted above for the same account. Must run after both of those requests. Verifies chronological (eventTimestamp) ordering, not insertion order -- the DEBIT event has an EARLIER eventTimestamp than the CREDIT despite being submitted second."
               },
-              "response": [],
+              "response": []
+            },
+            {
+              "name": "List events - missing account query param",
               "event": [
                 {
                   "listen": "test",
@@ -831,19 +911,12 @@
                       "    pm.response.to.have.status(400);",
                       "});"
                     ],
-                    "type": "text/javascript"
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
-              ]
-            }
-          ]
-        },
-        {
-          "name": "GET /health",
-          "description": "Gateway health check.",
-          "item": [
-            {
-              "name": "Gateway health check",
+              ],
               "request": {
                 "method": "GET",
                 "header": [
@@ -853,11 +926,35 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{gatewayBaseUrl}}/health"
+                  "raw": "http://localhost:9090/events",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "9090",
+                  "path": [
+                    "events"
+                  ],
+                  "query": [
+                    {
+                      "key": "account",
+                      "value": "",
+                      "disabled": true
+                    }
+                  ]
                 },
-                "description": "Expect 200 with service=event-gateway and status UP (or DEGRADED if the Account Service happens to be down when this runs)."
+                "description": "Omits the required 'account' query parameter entirely. Expect 400."
               },
-              "response": [],
+              "response": []
+            }
+          ],
+          "description": "Local-only listing by accountId, chronologically ordered."
+        },
+        {
+          "name": "GET /health",
+          "item": [
+            {
+              "name": "Gateway health check",
               "event": [
                 {
                   "listen": "test",
@@ -877,27 +974,14 @@
                       "    pm.expect(json.checks.database).to.eql('UP');",
                       "});"
                     ],
-                    "type": "text/javascript"
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "Account Service (Direct)",
-      "description": "Internal service, called directly here to isolate its behavior from the Gateway. All requests target accountBaseUrl (default localhost:8081). In a real deployment this service would not be reachable from outside the docker network -- see the project README for that tradeoff.",
-      "item": [
-        {
-          "name": "POST /accounts/{accountId}/transactions - Positive",
-          "description": "Happy-path transactions applied directly, bypassing the Gateway.",
-          "item": [
-            {
-              "name": "Apply CREDIT transaction directly",
+              ],
               "request": {
-                "method": "POST",
+                "method": "GET",
                 "header": [
                   {
                     "key": "Content-Type",
@@ -905,20 +989,34 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{accountBaseUrl}}/accounts/{{asAccountId}}/transactions"
+                  "raw": "http://localhost:9090/health",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "9090",
+                  "path": [
+                    "health"
+                  ]
                 },
-                "description": "Calls the Account Service directly, bypassing the Gateway (useful for isolating Account Service behavior). Creates the account implicitly on first transaction.",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"eventId\": \"{{asEventId}}\",\n  \"type\": \"CREDIT\",\n  \"amount\": 200.0,\n  \"currency\": \"USD\",\n  \"eventTimestamp\": \"2026-05-15T14:00:00Z\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
+                "description": "Expect 200 with service=event-gateway and status UP (or DEGRADED if the Account Service happens to be down when this runs)."
               },
-              "response": [],
+              "response": []
+            }
+          ],
+          "description": "Gateway health check."
+        }
+      ],
+      "description": "Public-facing entry point. All requests target gatewayBaseUrl (default localhost:8080)."
+    },
+    {
+      "name": "Account Service (Direct)",
+      "item": [
+        {
+          "name": "POST /accounts/{accountId}/transactions - Positive",
+          "item": [
+            {
+              "name": "Apply CREDIT transaction directly",
               "event": [
                 {
                   "listen": "prerequest",
@@ -927,7 +1025,9 @@
                       "pm.collectionVariables.set('asAccountId', 'acct-direct-' + Date.now());",
                       "pm.collectionVariables.set('asEventId', 'evt-direct-' + Date.now());"
                     ],
-                    "type": "text/javascript"
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 },
                 {
@@ -945,13 +1045,12 @@
                       "    pm.expect(json.appliedTransaction.eventId).to.eql(pm.collectionVariables.get('asEventId'));",
                       "});"
                     ],
-                    "type": "text/javascript"
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
-              ]
-            },
-            {
-              "name": "Apply DEBIT transaction directly (same account)",
+              ],
               "request": {
                 "method": "POST",
                 "header": [
@@ -960,21 +1059,34 @@
                     "value": "application/json"
                   }
                 ],
-                "url": {
-                  "raw": "{{accountBaseUrl}}/accounts/{{asAccountId}}/transactions"
-                },
-                "description": "Second transaction on the same account created above. Must run after 'Apply CREDIT transaction directly'.",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"eventId\": \"{{asDebitEventId}}\",\n  \"type\": \"DEBIT\",\n  \"amount\": 50.0,\n  \"currency\": \"USD\",\n  \"eventTimestamp\": \"2026-05-15T15:00:00Z\"\n}",
+                  "raw": "{\n  \"eventId\": \"evt-03\",\n  \"type\": \"CREDIT\",\n  \"amount\": 200.0,\n  \"currency\": \"USD\",\n  \"eventTimestamp\": \"2026-05-15T14:00:00Z\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
                     }
                   }
-                }
+                },
+                "url": {
+                  "raw": "http://localhost:9091/accounts/acct-01/transactions",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "9091",
+                  "path": [
+                    "accounts",
+                    "acct-01",
+                    "transactions"
+                  ]
+                },
+                "description": "Calls the Account Service directly, bypassing the Gateway (useful for isolating Account Service behavior). Creates the account implicitly on first transaction."
               },
-              "response": [],
+              "response": []
+            },
+            {
+              "name": "Apply DEBIT transaction directly (same account)",
               "event": [
                 {
                   "listen": "prerequest",
@@ -982,7 +1094,9 @@
                     "exec": [
                       "pm.collectionVariables.set('asDebitEventId', 'evt-direct-debit-' + Date.now());"
                     ],
-                    "type": "text/javascript"
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 },
                 {
@@ -997,13 +1111,12 @@
                       "    pm.expect(json.balance).to.eql(150.0);",
                       "});"
                     ],
-                    "type": "text/javascript"
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
-              ]
-            },
-            {
-              "name": "Duplicate transaction (same eventId as CREDIT above)",
+              ],
               "request": {
                 "method": "POST",
                 "header": [
@@ -1012,21 +1125,34 @@
                     "value": "application/json"
                   }
                 ],
-                "url": {
-                  "raw": "{{accountBaseUrl}}/accounts/{{asAccountId}}/transactions"
-                },
-                "description": "Re-submits the exact same eventId as 'Apply CREDIT transaction directly'. Must run after it. Expect 200 (not 201), balance unchanged -- proves the Account Service's own idempotency guard works independently of the Gateway's.",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"eventId\": \"{{asEventId}}\",\n  \"type\": \"CREDIT\",\n  \"amount\": 200.0,\n  \"currency\": \"USD\",\n  \"eventTimestamp\": \"2026-05-15T14:00:00Z\"\n}",
+                  "raw": "{\n  \"eventId\": \"evt-04\",\n  \"type\": \"DEBIT\",\n  \"amount\": 50.0,\n  \"currency\": \"USD\",\n  \"eventTimestamp\": \"2026-05-15T15:00:00Z\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
                     }
                   }
-                }
+                },
+                "url": {
+                  "raw": "http://localhost:9091/accounts/acct-01/transactions",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "9091",
+                  "path": [
+                    "accounts",
+                    "acct-01",
+                    "transactions"
+                  ]
+                },
+                "description": "Second transaction on the same account created above. Must run after 'Apply CREDIT transaction directly'."
               },
-              "response": [],
+              "response": []
+            },
+            {
+              "name": "Duplicate transaction (same eventId as CREDIT above)",
               "event": [
                 {
                   "listen": "test",
@@ -1040,19 +1166,12 @@
                       "    pm.expect(json.balance).to.eql(150.0);",
                       "});"
                     ],
-                    "type": "text/javascript"
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
-              ]
-            }
-          ]
-        },
-        {
-          "name": "POST /accounts/{accountId}/transactions - Negative / Validation",
-          "description": "Malformed or invalid transactions, exercising the Account Service's own independent validation (defense-in-depth, not just relying on the Gateway).",
-          "item": [
-            {
-              "name": "Missing eventId",
+              ],
               "request": {
                 "method": "POST",
                 "header": [
@@ -1061,21 +1180,40 @@
                     "value": "application/json"
                   }
                 ],
-                "url": {
-                  "raw": "{{accountBaseUrl}}/accounts/acct-neg-direct/transactions"
-                },
-                "description": "eventId omitted. Expect 400 -- the Account Service validates independently of the Gateway, per its defense-in-depth design.",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"type\": \"CREDIT\",\n  \"amount\": 10.0,\n  \"currency\": \"USD\",\n  \"eventTimestamp\": \"2026-05-15T14:00:00Z\"\n}",
+                  "raw": "{\n  \"eventId\": \"evt-03\",\n  \"type\": \"CREDIT\",\n  \"amount\": 200.0,\n  \"currency\": \"USD\",\n  \"eventTimestamp\": \"2026-05-15T14:00:00Z\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
                     }
                   }
-                }
+                },
+                "url": {
+                  "raw": "http://localhost:9091/accounts/acct-01/transactions",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "9091",
+                  "path": [
+                    "accounts",
+                    "acct-01",
+                    "transactions"
+                  ]
+                },
+                "description": "Re-submits the exact same eventId as 'Apply CREDIT transaction directly'. Must run after it. Expect 200 (not 201), balance unchanged -- proves the Account Service's own idempotency guard works independently of the Gateway's."
               },
-              "response": [],
+              "response": []
+            }
+          ],
+          "description": "Happy-path transactions applied directly, bypassing the Gateway."
+        },
+        {
+          "name": "POST /accounts/{accountId}/transactions - Negative / Validation",
+          "item": [
+            {
+              "name": "Missing eventId",
               "event": [
                 {
                   "listen": "test",
@@ -1092,13 +1230,12 @@
                       "    pm.expect(json.error.message.toLowerCase()).to.include('eventid');",
                       "});"
                     ],
-                    "type": "text/javascript"
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
-              ]
-            },
-            {
-              "name": "Invalid type",
+              ],
               "request": {
                 "method": "POST",
                 "header": [
@@ -1107,21 +1244,34 @@
                     "value": "application/json"
                   }
                 ],
-                "url": {
-                  "raw": "{{accountBaseUrl}}/accounts/acct-neg-direct/transactions"
-                },
-                "description": "type is 'TRANSFER'. Expect 400.",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"eventId\": \"evt-as-neg-badtype\",\n  \"type\": \"TRANSFER\",\n  \"amount\": 10.0,\n  \"currency\": \"USD\",\n  \"eventTimestamp\": \"2026-05-15T14:00:00Z\"\n}",
+                  "raw": "{\n  \"type\": \"CREDIT\",\n  \"amount\": 10.0,\n  \"currency\": \"USD\",\n  \"eventTimestamp\": \"2026-05-15T14:00:00Z\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
                     }
                   }
-                }
+                },
+                "url": {
+                  "raw": "http://localhost:9091/accounts/acct-01/transactions",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "9091",
+                  "path": [
+                    "accounts",
+                    "acct-01",
+                    "transactions"
+                  ]
+                },
+                "description": "eventId omitted. Expect 400 -- the Account Service validates independently of the Gateway, per its defense-in-depth design."
               },
-              "response": [],
+              "response": []
+            },
+            {
+              "name": "Invalid type",
               "event": [
                 {
                   "listen": "test",
@@ -1138,13 +1288,12 @@
                       "    pm.expect(json.error.message.toLowerCase()).to.include('type');",
                       "});"
                     ],
-                    "type": "text/javascript"
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
-              ]
-            },
-            {
-              "name": "Negative amount",
+              ],
               "request": {
                 "method": "POST",
                 "header": [
@@ -1153,21 +1302,34 @@
                     "value": "application/json"
                   }
                 ],
-                "url": {
-                  "raw": "{{accountBaseUrl}}/accounts/acct-neg-direct/transactions"
-                },
-                "description": "amount is negative. Expect 400.",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"eventId\": \"evt-as-neg-amount\",\n  \"type\": \"DEBIT\",\n  \"amount\": -25.0,\n  \"currency\": \"USD\",\n  \"eventTimestamp\": \"2026-05-15T14:00:00Z\"\n}",
+                  "raw": "{\n  \"eventId\": \"evt-as-neg-badtype\",\n  \"type\": \"TRANSFER\",\n  \"amount\": 10.0,\n  \"currency\": \"USD\",\n  \"eventTimestamp\": \"2026-05-15T14:00:00Z\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
                     }
                   }
-                }
+                },
+                "url": {
+                  "raw": "http://localhost:9091/accounts/acct-01/transactions",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "9091",
+                  "path": [
+                    "accounts",
+                    "acct-01",
+                    "transactions"
+                  ]
+                },
+                "description": "type is 'TRANSFER'. Expect 400."
               },
-              "response": [],
+              "response": []
+            },
+            {
+              "name": "Negative amount",
               "event": [
                 {
                   "listen": "test",
@@ -1184,13 +1346,12 @@
                       "    pm.expect(json.error.message.toLowerCase()).to.include('amount');",
                       "});"
                     ],
-                    "type": "text/javascript"
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
-              ]
-            },
-            {
-              "name": "Missing currency",
+              ],
               "request": {
                 "method": "POST",
                 "header": [
@@ -1199,21 +1360,34 @@
                     "value": "application/json"
                   }
                 ],
-                "url": {
-                  "raw": "{{accountBaseUrl}}/accounts/acct-neg-direct/transactions"
-                },
-                "description": "currency omitted. Expect 400.",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"eventId\": \"evt-as-neg-currency\",\n  \"type\": \"CREDIT\",\n  \"amount\": 10.0,\n  \"eventTimestamp\": \"2026-05-15T14:00:00Z\"\n}",
+                  "raw": "{\n  \"eventId\": \"evt-as-neg-amount\",\n  \"type\": \"DEBIT\",\n  \"amount\": -25.0,\n  \"currency\": \"USD\",\n  \"eventTimestamp\": \"2026-05-15T14:00:00Z\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
                     }
                   }
-                }
+                },
+                "url": {
+                  "raw": "http://localhost:9091/accounts/acct-01/transactions",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "9091",
+                  "path": [
+                    "accounts",
+                    "acct-01",
+                    "transactions"
+                  ]
+                },
+                "description": "amount is negative. Expect 400."
               },
-              "response": [],
+              "response": []
+            },
+            {
+              "name": "Missing currency",
               "event": [
                 {
                   "listen": "test",
@@ -1230,13 +1404,12 @@
                       "    pm.expect(json.error.message.toLowerCase()).to.include('currency');",
                       "});"
                     ],
-                    "type": "text/javascript"
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
-              ]
-            },
-            {
-              "name": "Missing eventTimestamp",
+              ],
               "request": {
                 "method": "POST",
                 "header": [
@@ -1245,21 +1418,34 @@
                     "value": "application/json"
                   }
                 ],
-                "url": {
-                  "raw": "{{accountBaseUrl}}/accounts/acct-neg-direct/transactions"
-                },
-                "description": "eventTimestamp omitted. Expect 400.",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"eventId\": \"evt-as-neg-timestamp\",\n  \"type\": \"CREDIT\",\n  \"amount\": 10.0,\n  \"currency\": \"USD\"\n}",
+                  "raw": "{\n  \"eventId\": \"evt-as-neg-currency\",\n  \"type\": \"CREDIT\",\n  \"amount\": 10.0,\n  \"eventTimestamp\": \"2026-05-15T14:00:00Z\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
                     }
                   }
-                }
+                },
+                "url": {
+                  "raw": "http://localhost:9091/accounts/acct-01/transactions",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "9091",
+                  "path": [
+                    "accounts",
+                    "acct-01",
+                    "transactions"
+                  ]
+                },
+                "description": "currency omitted. Expect 400."
               },
-              "response": [],
+              "response": []
+            },
+            {
+              "name": "Missing eventTimestamp",
               "event": [
                 {
                   "listen": "test",
@@ -1276,33 +1462,54 @@
                       "    pm.expect(json.error.message.toLowerCase()).to.include('eventtimestamp');",
                       "});"
                     ],
-                    "type": "text/javascript"
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
-              ]
-            }
-          ]
-        },
-        {
-          "name": "GET /accounts/{accountId}/balance",
-          "description": "",
-          "item": [
-            {
-              "name": "Get balance - existing account",
+              ],
               "request": {
-                "method": "GET",
+                "method": "POST",
                 "header": [
                   {
                     "key": "Content-Type",
                     "value": "application/json"
                   }
                 ],
-                "url": {
-                  "raw": "{{accountBaseUrl}}/accounts/{{asAccountId}}/balance"
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"eventId\": \"evt-as-neg-timestamp\",\n  \"type\": \"CREDIT\",\n  \"amount\": 10.0,\n  \"currency\": \"USD\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 },
-                "description": "Fetches the balance for the account created above. Must run after the CREDIT and DEBIT requests. Expect 200, balance 150.00."
+                "url": {
+                  "raw": "http://localhost:9091/accounts/acct-01/transactions",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "9091",
+                  "path": [
+                    "accounts",
+                    "acct-01",
+                    "transactions"
+                  ]
+                },
+                "description": "eventTimestamp omitted. Expect 400."
               },
-              "response": [],
+              "response": []
+            }
+          ],
+          "description": "Malformed or invalid transactions, exercising the Account Service's own independent validation (defense-in-depth, not just relying on the Gateway)."
+        },
+        {
+          "name": "GET /accounts/{accountId}/balance",
+          "item": [
+            {
+              "name": "Get balance - existing account",
               "event": [
                 {
                   "listen": "test",
@@ -1319,13 +1526,12 @@
                       "    pm.expect(json.currency).to.eql('USD');",
                       "});"
                     ],
-                    "type": "text/javascript"
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
-              ]
-            },
-            {
-              "name": "Get balance - non-existent account",
+              ],
               "request": {
                 "method": "GET",
                 "header": [
@@ -1335,11 +1541,24 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{accountBaseUrl}}/accounts/acct-never-existed-99999/balance"
+                  "raw": "http://localhost:9091/accounts/acct-01/balance",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "9091",
+                  "path": [
+                    "accounts",
+                    "acct-01",
+                    "balance"
+                  ]
                 },
-                "description": "Requests balance for an account that has never had a transaction. Expect 404 ACCOUNT_NOT_FOUND."
+                "description": "Fetches the balance for the account created above. Must run after the CREDIT and DEBIT requests. Expect 200, balance 150.00."
               },
-              "response": [],
+              "response": []
+            },
+            {
+              "name": "Get balance - non-existent account",
               "event": [
                 {
                   "listen": "test",
@@ -1353,19 +1572,12 @@
                       "    pm.expect(json.error.code).to.eql('ACCOUNT_NOT_FOUND');",
                       "});"
                     ],
-                    "type": "text/javascript"
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
-              ]
-            }
-          ]
-        },
-        {
-          "name": "GET /accounts/{accountId}",
-          "description": "",
-          "item": [
-            {
-              "name": "Get account detail - existing account",
+              ],
               "request": {
                 "method": "GET",
                 "header": [
@@ -1375,11 +1587,29 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{accountBaseUrl}}/accounts/{{asAccountId}}"
+                  "raw": "http://localhost:9091/accounts/acct-0111/balance",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "9091",
+                  "path": [
+                    "accounts",
+                    "acct-0111",
+                    "balance"
+                  ]
                 },
-                "description": "Fetches account detail including recent transaction history. Must run after the CREDIT/DEBIT/duplicate requests above."
+                "description": "Requests balance for an account that has never had a transaction. Expect 404 ACCOUNT_NOT_FOUND."
               },
-              "response": [],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "GET /accounts/{accountId}",
+          "item": [
+            {
+              "name": "Get account detail - existing account",
               "event": [
                 {
                   "listen": "test",
@@ -1402,13 +1632,12 @@
                       "    }",
                       "});"
                     ],
-                    "type": "text/javascript"
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
-              ]
-            },
-            {
-              "name": "Get account detail - non-existent account",
+              ],
               "request": {
                 "method": "GET",
                 "header": [
@@ -1418,11 +1647,23 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{accountBaseUrl}}/accounts/acct-never-existed-99999"
+                  "raw": "http://localhost:9091/accounts/acct-01",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "9091",
+                  "path": [
+                    "accounts",
+                    "acct-01"
+                  ]
                 },
-                "description": "Requests detail for an account that has never had a transaction. Expect 404 ACCOUNT_NOT_FOUND."
+                "description": "Fetches account detail including recent transaction history. Must run after the CREDIT/DEBIT/duplicate requests above."
               },
-              "response": [],
+              "response": []
+            },
+            {
+              "name": "Get account detail - non-existent account",
               "event": [
                 {
                   "listen": "test",
@@ -1436,19 +1677,12 @@
                       "    pm.expect(json.error.code).to.eql('ACCOUNT_NOT_FOUND');",
                       "});"
                     ],
-                    "type": "text/javascript"
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
-              ]
-            }
-          ]
-        },
-        {
-          "name": "GET /health",
-          "description": "Account Service health check.",
-          "item": [
-            {
-              "name": "Account Service health check",
+              ],
               "request": {
                 "method": "GET",
                 "header": [
@@ -1458,11 +1692,28 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{accountBaseUrl}}/health"
+                  "raw": "http://localhost:9091/accounts/acct-0111",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "9091",
+                  "path": [
+                    "accounts",
+                    "acct-0111"
+                  ]
                 },
-                "description": "Expect 200 with service=account-service and status UP."
+                "description": "Requests detail for an account that has never had a transaction. Expect 404 ACCOUNT_NOT_FOUND."
               },
-              "response": [],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "GET /health",
+          "item": [
+            {
+              "name": "Account Service health check",
               "event": [
                 {
                   "listen": "test",
@@ -1479,44 +1730,46 @@
                       "    pm.expect(json.status).to.eql('UP');",
                       "});"
                     ],
-                    "type": "text/javascript"
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
-              ]
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "http://localhost:9091/health",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "9091",
+                  "path": [
+                    "health"
+                  ]
+                },
+                "description": "Expect 200 with service=account-service and status UP."
+              },
+              "response": []
             }
-          ]
+          ],
+          "description": "Account Service health check."
         }
-      ]
+      ],
+      "description": "Internal service, called directly here to isolate its behavior from the Gateway. All requests target accountBaseUrl (default localhost:8081). In a real deployment this service would not be reachable from outside the docker network -- see the project README for that tradeoff."
     },
     {
       "name": "Resiliency & Graceful Degradation (MANUAL)",
-      "description": "Requires manually stopping/restarting the Account Service mid-folder -- read each request's description before running. Run this folder on its own, not as part of a full collection run.",
       "item": [
         {
           "name": "[MANUAL PRECONDITION] POST /events while Account Service is down",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{gatewayBaseUrl}}/events"
-            },
-            "description": "PRECONDITION -- before running this request, stop the Account Service: `docker compose stop account-service` (or kill the local process if running without Docker). Then run this request. Expect 503 SERVICE_UNAVAILABLE, and the event should still be recorded at the Gateway with status PENDING (verify via the next request in this folder). Restart the Account Service afterwards: `docker compose start account-service`.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"eventId\": \"{{resilEventId}}\",\n  \"accountId\": \"{{resilAccountId}}\",\n  \"type\": \"CREDIT\",\n  \"amount\": 75.0,\n  \"currency\": \"USD\",\n  \"eventTimestamp\": \"2026-05-15T14:00:00Z\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": [],
           "event": [
             {
               "listen": "prerequest",
@@ -1525,7 +1778,9 @@
                   "pm.collectionVariables.set('resilEventId', 'evt-resil-' + Date.now());",
                   "pm.collectionVariables.set('resilAccountId', 'acct-resil-' + Date.now());"
                 ],
-                "type": "text/javascript"
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             },
             {
@@ -1540,27 +1795,46 @@
                   "    pm.expect(json.error.code).to.eql('ACCOUNT_SERVICE_UNAVAILABLE');",
                   "});"
                 ],
-                "type": "text/javascript"
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             }
-          ]
-        },
-        {
-          "name": "[MANUAL] GET /events/{id} still works while Account Service is down",
+          ],
           "request": {
-            "method": "GET",
+            "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
-            "url": {
-              "raw": "{{gatewayBaseUrl}}/events/{{resilEventId}}"
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventId\": \"evt-11\",\n  \"accountId\": \"acct-02\",\n  \"type\": \"CREDIT\",\n  \"amount\": 75.0,\n  \"currency\": \"USD\",\n  \"eventTimestamp\": \"2026-05-15T14:00:00Z\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
-            "description": "Run this immediately after the request above, WHILE the Account Service is still stopped. This is a Gateway-local read and must keep working regardless of downstream availability. Expect 200, status PENDING, and balance absent/null."
+            "url": {
+              "raw": "http://localhost:9090/events",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "9090",
+              "path": [
+                "events"
+              ]
+            },
+            "description": "PRECONDITION -- before running this request, stop the Account Service: `docker compose stop account-service` (or kill the local process if running without Docker). Then run this request. Expect 503 SERVICE_UNAVAILABLE, and the event should still be recorded at the Gateway with status PENDING (verify via the next request in this folder). Restart the Account Service afterwards: `docker compose start account-service`."
           },
-          "response": [],
+          "response": []
+        },
+        {
+          "name": "[MANUAL] GET /events/{id} still works while Account Service is down",
           "event": [
             {
               "listen": "test",
@@ -1577,13 +1851,12 @@
                   "    pm.expect(json.balance).to.be.null;",
                   "});"
                 ],
-                "type": "text/javascript"
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             }
-          ]
-        },
-        {
-          "name": "[MANUAL] GET /events?account= still works while Account Service is down",
+          ],
           "request": {
             "method": "GET",
             "header": [
@@ -1593,11 +1866,23 @@
               }
             ],
             "url": {
-              "raw": "{{gatewayBaseUrl}}/events?account={{resilAccountId}}"
+              "raw": "http://localhost:9090/events/evt-02",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "9090",
+              "path": [
+                "events",
+                "evt-02"
+              ]
             },
-            "description": "Also run while the Account Service is still stopped. Another Gateway-local read that must keep working. Expect 200."
+            "description": "Run this immediately after the request above, WHILE the Account Service is still stopped. This is a Gateway-local read and must keep working regardless of downstream availability. Expect 200, status PENDING, and balance absent/null."
           },
-          "response": [],
+          "response": []
+        },
+        {
+          "name": "[MANUAL] GET /events?account= still works while Account Service is down",
           "event": [
             {
               "listen": "test",
@@ -1616,12 +1901,103 @@
                   "    pm.expect(true).to.be.true;",
                   "});"
                 ],
-                "type": "text/javascript"
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             }
-          ]
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:9090/events?account=acct-01",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "9090",
+              "path": [
+                "events"
+              ],
+              "query": [
+                {
+                  "key": "account",
+                  "value": "acct-01"
+                }
+              ]
+            },
+            "description": "Also run while the Account Service is still stopped. Another Gateway-local read that must keep working. Expect 200."
+          },
+          "response": []
         }
-      ]
+      ],
+      "description": "Requires manually stopping/restarting the Account Service mid-folder -- read each request's description before running. Run this folder on its own, not as part of a full collection run."
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "exec": [
+          "// Runs before every request in the collection.",
+          "// Lazily seeds a few shared, per-run-unique IDs so requests that",
+          "// depend on state created by an earlier request (duplicate checks,",
+          "// get-by-id, list-by-account) stay consistent across a full collection",
+          "// run, while still being unique between separate runs.",
+          "if (!pm.collectionVariables.get('gwAccountId')) {",
+          "    pm.collectionVariables.set('gwAccountId', 'acct-postman-' + Date.now());",
+          "}"
+        ],
+        "type": "text/javascript"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "gatewayBaseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "accountBaseUrl",
+      "value": "http://localhost:8081"
+    },
+    {
+      "key": "gwCreditEventId",
+      "value": ""
+    },
+    {
+      "key": "gwDebitEventId",
+      "value": ""
+    },
+    {
+      "key": "gwAccountId",
+      "value": ""
+    },
+    {
+      "key": "asAccountId",
+      "value": ""
+    },
+    {
+      "key": "asEventId",
+      "value": ""
+    },
+    {
+      "key": "asDebitEventId",
+      "value": ""
+    },
+    {
+      "key": "resilEventId",
+      "value": ""
+    },
+    {
+      "key": "resilAccountId",
+      "value": ""
     }
   ]
 }
