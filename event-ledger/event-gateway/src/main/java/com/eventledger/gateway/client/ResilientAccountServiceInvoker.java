@@ -72,6 +72,7 @@ public class ResilientAccountServiceInvoker {
     private ApplyTransactionResponse fallback(
             String accountId, ApplyTransactionRequest request, String traceId, Throwable t) {
         if (t instanceof CallNotPermittedException) {
+        	System.out.println("Jp account service invoker fallback - circuit breaker open");
             throw new AccountServiceUnavailableException("Circuit breaker open for account service", t);
         }
         if (t instanceof RuntimeException re) {

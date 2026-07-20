@@ -1,8 +1,17 @@
 package com.eventledger.gateway.resiliency;
 
-import com.eventledger.gateway.dto.response.EventResponse;
-import io.github.resilience4j.circuitbreaker.CircuitBreaker;
-import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.findAll;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.Map;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,12 +21,11 @@ import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.math.BigDecimal;
-import java.time.Instant;
-import java.util.Map;
+import com.eventledger.gateway.dto.response.ErrorResponse;
+import com.eventledger.gateway.dto.response.EventResponse;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.assertj.core.api.Assertions.assertThat;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWireMock(port = 0)
@@ -69,6 +77,9 @@ class CircuitBreakerTest {
         var response = restTemplate.postForEntity("/events", eventPayload("evt-cb-after-open"), Map.class);
         int callsAfter = findAll(postRequestedFor(urlPathMatching("/accounts/.*/transactions"))).size();
 
+        System.out.println(response.getStatusCode());
+        System.out.println(response.getBody());
+        System.out.println("Calls before: " + callsBefore + ", Calls after: " + callsAfter);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
         assertThat(callsAfter).isEqualTo(callsBefore); // breaker short-circuited -- no new call reached the stub
     }

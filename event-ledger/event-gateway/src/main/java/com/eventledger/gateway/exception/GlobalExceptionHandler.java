@@ -42,7 +42,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AccountServiceUnavailableException.class)
     public ResponseEntity<ErrorResponse> handleUnavailable(AccountServiceUnavailableException ex) {
-        log.warn("Account service unavailable traceId={} cause={}",
+    	log.warn("Account service unavailable traceId={} cause={}",
                 TraceContext.current(), ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage());
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body(ErrorResponse.of("ACCOUNT_SERVICE_UNAVAILABLE",
