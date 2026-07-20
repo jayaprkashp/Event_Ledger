@@ -16,4 +16,21 @@ resilience4j:
         sliding-window-size: 10
         minimum-number-of-calls: 5
         failure-rate-threshold: 50
-        wait-duration-in-open-state: 10s
+        # Pushed well beyond any plausible test execution time so a test can
+        # never accidentally race the breaker's own auto-recovery -- we want
+        # OPEN to mean OPEN for the whole test, not "open until the wait
+        # window happens to elapse mid-assertion."
+        wait-duration-in-open-state: 60s
+  retry:
+    instances:
+      accountService:
+        # Retry is disabled in tests specifically so 1 HTTP call to the stub
+        # equals exactly 1 call recorded by the circuit breaker, with zero
+        # backoff delay. With retry active (production config: max-attempts
+        # 3, exponential backoff), a single failing call can produce up to 3
+        # recorded calls with real wait time between them -- which makes
+        # circuit-breaker-focused tests fuzzy to reason about and slow to
+        # run, without adding anything retry-specific tests actually need to
+        # verify. Retry's own behavior is exercised by production config,
+        # not by these tests.
+        max-attempts: 1
