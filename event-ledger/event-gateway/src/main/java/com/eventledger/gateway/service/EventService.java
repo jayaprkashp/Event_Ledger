@@ -80,6 +80,8 @@ public class EventService {
             record.markApplied();
             repository.save(record);
             metrics.recordApplied();
+            log.info("An event triggered with eventId={} traceId={}",
+                    request.eventId(), TraceContext.current());
             return toResponse(record, downstream.balance(), downstream.currency());
 
         } catch (AccountServiceUnavailableException ex) {
