@@ -1,0 +1,10 @@
+Health check for event-gateway : http://localhost:9090/health
+
+{
+    "status": "UP",
+    "service": "event-gateway",
+    "checks": {
+        "database": "UP",
+        "accountService": "UP"
+    }
+}

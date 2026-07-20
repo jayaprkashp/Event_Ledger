@@ -32,7 +32,7 @@ Client ──REST──▶ Event Gateway (public, :8080) ──REST + trace head
 
 ## API contracts
 
-**Event Gateway** (`localhost:8080`)
+**Event Gateway** (`localhost:9090`)
 
 | Method | Endpoint | Notes |
 |---|---|---|
@@ -41,7 +41,7 @@ Client ──REST──▶ Event Gateway (public, :8080) ──REST + trace head
 | `GET` | `/events?account={accountId}` | Ordered by `eventTimestamp`; local lookup only |
 | `GET` | `/health` | `UP` / `DEGRADED` (account service down but gateway itself fine) |
 
-**Account Service** (`localhost:8081`, internal — see the port-exposure note below)
+**Account Service** (`localhost:9091`, internal — see the port-exposure note below)
 
 | Method | Endpoint | Notes |
 |---|---|---|
@@ -82,8 +82,8 @@ correctly during the build) and starts the Account Service first, waiting for it
 report healthy before starting the Gateway — this avoids the Gateway seeing spurious `503`s
 during startup.
 
-- Gateway: `http://localhost:8080`
-- Account Service: `http://localhost:8081`
+- Gateway: `http://localhost:9090`
+- Account Service: `http://localhost:9091`
 
 > **Note on the Account Service's exposed port:** architecturally the Account Service is
 > internal-only — only the Gateway should call it. `docker-compose.yml` still publishes
@@ -116,29 +116,7 @@ test — Docker Compose is what exercises the two *real* processes together end-
 
 ## Resiliency pattern: circuit breaker
 
-The Gateway wraps its call to the Account Service with a **Resilience4j circuit breaker**,
-layered with a timeout and bounded retry:
 
-- **Circuit breaker** — opens once ≥50% of the last 10 calls fail (after a minimum of 5 calls,
-  so it doesn't trip on a cold start), then fails fast for 10 seconds before allowing a few
-  trial calls through (half-open) to check recovery. This is the primary pattern: it protects
-  the Gateway from piling up slow/failing calls when the Account Service is genuinely down, and
-  gives clients an immediate, honest `503` instead of a hanging request.
-- **Timeout** (3s) — backstops any single call so a slow-but-technically-alive Account Service
-  doesn't hold Gateway threads indefinitely.
-- **Retry** (up to 3 attempts, exponential backoff starting at 200ms) — but only for genuinely
-  transient failures (connection issues, timeouts, `409` concurrency conflicts). A definitive
-  rejection (`400`-style) is never retried.
-
-I chose circuit breaker as the primary pattern over bulkhead because the Account Service is
-this Gateway's *only* downstream dependency — there's no other resource pool to isolate it from
-within this exercise's scope — and over pure retry-only because retry alone doesn't prevent
-pileup during a sustained outage; it just delays it.
 
 ## What's out of scope
 
-- Kafka / async messaging — the spec requires synchronous REST between services; this wasn't
-  implemented, per that constraint.
-- Multi-currency accounts, pagination on transaction history beyond the fixed 50-item cap, and
-  an OpenTelemetry Collector/Jaeger export (spans currently export to the log stream, which
-  satisfies the trace-propagation requirement without an external dependency).
