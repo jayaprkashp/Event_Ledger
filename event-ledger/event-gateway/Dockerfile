@@ -11,6 +11,6 @@ RUN ./mvnw -pl event-gateway -am package -DskipTests -q
 
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-COPY --from=build /event-ledger/event-gateway/target/event-gateway*.jar app.jar
+COPY --from=build /app/event-gateway/target/event-gateway*.jar app.jar
 EXPOSE 9090
 ENTRYPOINT ["java", "-jar", "app.jar"]

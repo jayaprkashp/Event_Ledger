@@ -11,6 +11,6 @@ RUN ./mvnw -pl account-service -am package -DskipTests -q
 
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-COPY --from=build /event-ledger/account-service/target/account-service*.jar app.jar
+COPY --from=build /app/account-service/target/account-service*.jar app.jar
 EXPOSE 9091
 ENTRYPOINT ["java", "-jar", "app.jar"]
