@@ -70,3 +70,11 @@ The code coverage for com.eventledger.account package is 37%,
 please add new tests to increase the code coverage.
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Prompt 8:
+
+The code coverage for com.eventledger.gateway.controller package is 40%, 
+com.eventledger.gateway.client is 55%, com.eventledger.gateway is 37%,
+please add new tests to increase the code coverage.
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
