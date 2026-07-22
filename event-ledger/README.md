@@ -109,6 +109,10 @@ validation, circuit breaker behavior, and trace propagation. `mvn verify` additi
 against a MockServer stub standing in for the Account Service (a contract-level integration
 test — Docker Compose is what exercises the two *real* processes together end-to-end).
 
+## Postman Collection
+
+The event-ledger/postman_collection contains all the endpoints for manual testing done on this application.
+
 ## Reports
 
 In the event-ledger/reports, the reports related to the below items are available,
@@ -120,8 +124,8 @@ In the event-ledger/reports, the reports related to the below items are availabl
   - observability
   - traceability
 
-## Postman Collection
+## Documents
 
-The event-ledger/postman_collection contains all the endpoints for manual testing done on this application.
+All the project related documents are available in event-ledger/docs folder. It has the AI usage prompts, requirements and application architecture documents.
 
 
