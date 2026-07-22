@@ -94,6 +94,8 @@ public class EventService {
 
         } catch (DownstreamRejectionException ex) {
             // Account service explicitly rejected it -- this IS terminal.
+        	 log.warn("Account service  explicitly rejected it eventId={} traceId={}",
+                     request.eventId(), TraceContext.current());
             record.markFailedDownstream(ex.getMessage());
             repository.save(record);
             metrics.recordDownstreamFailure();
@@ -104,10 +106,14 @@ public class EventService {
     public EventResponse getEvent(String eventId) {
         EventRecord record = repository.findByEventId(eventId)
                 .orElseThrow(() -> new EventNotFoundException(eventId));
+        log.info("An event details request triggered with eventId={} traceId={}",
+                eventId, TraceContext.current());
         return toResponse(record, null, null);
     }
 
     public List<EventResponse> listByAccount(String accountId) {
+    	log.info("An event list request triggered with accountId={} traceId={}",
+    			accountId, TraceContext.current());
         return repository.findByAccountIdOrderByEventTimestampAsc(accountId)
                 .stream()
                 .map(r -> toResponse(r, null, null))

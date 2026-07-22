@@ -79,6 +79,8 @@ public class AccountTransactionService {
     public BalanceResponse getBalance(String accountId) {
         Account account = accountRepository.findByAccountId(accountId)
                 .orElseThrow(() -> new AccountNotFoundException(accountId));
+        log.info("Balance request for accountId={} newBalance={} traceId={}",
+                 accountId, account.getBalance(), TraceContext.current());
         return new BalanceResponse(account.getAccountId(), account.getBalance(),
                 account.getCurrency(), Instant.now());
     }
@@ -94,7 +96,8 @@ public class AccountTransactionService {
                 .map(t -> new AccountDetailResponse.TransactionSummary(
                         t.getEventId(), t.getType().name(), t.getAmount(), t.getEventTimestamp()))
                 .toList();
-
+        log.info("Account details request for accountId={} newBalance={} traceId={}",
+                accountId, account.getBalance(), TraceContext.current());
         return new AccountDetailResponse(account.getAccountId(), account.getBalance(),
                 account.getCurrency(), summaries);
     }
