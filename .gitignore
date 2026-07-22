@@ -3,6 +3,8 @@ event-ledger/.settings/org.eclipse.core.resources.prefs
 event-ledger/.settings/org.eclipse.m2e.core.prefs
 event-ledger/account-service/.classpath
 event-ledger/account-service/.project
+event-ledger/account-service/target
+event-ledger/account-service/logs
 event-ledger/account-service/.settings/org.eclipse.core.resources.prefs
 event-ledger/account-service/.settings/org.eclipse.jdt.apt.core.prefs
 event-ledger/account-service/.settings/org.eclipse.jdt.core.prefs
@@ -49,6 +51,8 @@ event-ledger/account-service/target/test-classes/com/eventledger/account/service
 event-ledger/account-service/target/test-classes/com/eventledger/account/service/OutOfOrderBalanceTest.class
 event-ledger/event-gateway/.classpath
 event-ledger/event-gateway/.project
+event-ledger/event-gateway/target
+event-ledger/event-gateway/logs
 event-ledger/event-gateway/.settings/org.eclipse.core.resources.prefs
 event-ledger/event-gateway/.settings/org.eclipse.jdt.apt.core.prefs
 event-ledger/event-gateway/.settings/org.eclipse.jdt.core.prefs

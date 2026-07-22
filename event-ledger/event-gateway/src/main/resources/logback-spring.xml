@@ -1,11 +1,32 @@
 <configuration>
-    <appender name="JSON" class="ch.qos.logback.core.ConsoleAppender">
+    <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
             <customFields>{"service":"event-gateway"}</customFields>
             <includeMdcKeyName>traceId</includeMdcKeyName>
         </encoder>
     </appender>
+
+    <!-- Persists the same structured JSON to disk, rolling daily and capping
+         total retained size, so logs survive process restarts and can be
+         grepped/tailed as files even when not running under Docker (which
+         already captures stdout on its own via `docker compose logs`). -->
+    <appender name="JSON_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/event-gateway.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/event-gateway.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxFileSize>50MB</maxFileSize>
+            <maxHistory>7</maxHistory>
+            <totalSizeCap>500MB</totalSizeCap>
+        </rollingPolicy>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <customFields>{"service":"event-gateway"}</customFields>
+            <includeMdcKeyName>traceId</includeMdcKeyName>
+        </encoder>
+    </appender>
+
     <root level="INFO">
-        <appender-ref ref="JSON"/>
+        <appender-ref ref="JSON_CONSOLE"/>
+        <appender-ref ref="JSON_FILE"/>
     </root>
 </configuration>
+

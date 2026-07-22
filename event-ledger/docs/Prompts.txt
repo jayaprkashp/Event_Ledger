@@ -42,3 +42,9 @@ Prompt 3:
 Create a post collection to test all end points with both positive and negative scenarios
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Prompt 4:
+
+Modify logback configuration to include rolling file appenders
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
