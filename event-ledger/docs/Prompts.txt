@@ -48,3 +48,11 @@ Prompt 4:
 Modify logback configuration to include rolling file appenders
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Prompt 5:
+
+The code coverage for AccountController and and HealthController in 
+com.eventledger.account.controller package is only 8%, 
+please add new test cases to increase the code coverage
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
