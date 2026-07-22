@@ -41,7 +41,7 @@ import java.io.IOException;
         }
         try {
 <span class="fc" id="L43">            chain.doFilter(req, res);</span>
-<span class="fc" id="L44">        } finally {</span>
+        } finally {
 <span class="fc" id="L45">            MDC.remove(MDC_KEY);</span>
 <span class="fc" id="L46">            TraceContext.clear();</span>
         }

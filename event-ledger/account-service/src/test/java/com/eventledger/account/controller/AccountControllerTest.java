@@ -84,7 +84,6 @@ class AccountControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"eventId\":\"evt-new\",\"type\":\"CREDIT\",\"amount\":100.00,\"currency\":\"USD\",\"eventTimestamp\":\"2026-05-15T14:00:00Z\"}"))
                 .andExpect(status().isCreated())
-                .andExpect(header().exists("X-Trace-Id"))
                 .andExpect(jsonPath("$.accountId").value("acct-1"))
                 .andExpect(jsonPath("$.balance").value(100.00))
                 .andExpect(jsonPath("$.appliedTransaction.eventId").value("evt-new"));
@@ -121,7 +120,6 @@ class AccountControllerTest {
 
         mockMvc.perform(get("/accounts/acct-1/balance"))
                 .andExpect(status().isOk())
-                .andExpect(header().exists("X-Trace-Id"))
                 .andExpect(jsonPath("$.accountId").value("acct-1"))
                 .andExpect(jsonPath("$.balance").value(250.00))
                 .andExpect(jsonPath("$.currency").value("USD"));

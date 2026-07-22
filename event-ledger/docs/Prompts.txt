@@ -56,3 +56,17 @@ com.eventledger.account.controller package is only 8%,
 please add new test cases to increase the code coverage
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Prompt 6:
+
+The code coverage for com.eventledger.account.exception package is 38%, 
+please add new tests to increase the code coverage.
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Prompt 7:
+
+The code coverage for com.eventledger.account package is 37%, 
+please add new tests to increase the code coverage.
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
